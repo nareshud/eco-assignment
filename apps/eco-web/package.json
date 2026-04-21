@@ -1,0 +1,15 @@
+{
+  "name": "eco-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo web app with static UI build (no runtime npm deps)",
+  "main": "server.js",
+  "scripts": {
+    "build": "node scripts/build.cjs",
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "eco-web.fullname" . }}
+  labels:
+    {{- include "eco-web.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "eco-web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "eco-web.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: eco-web
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          env:
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          {{- if and .Values.configEnv (gt (len .Values.configEnv) 0) }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "eco-web.fullname" . }}-env
+          {{- end }}
+          volumeMounts:
+            - name: app-config
+              mountPath: {{ .Values.config.mountPath }}
+            {{- if .Values.dataVolume.enabled }}
+            - name: data
+              mountPath: {{ .Values.dataVolume.mountPath }}
+            {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: app-config
+          configMap:
+            name: {{ include "eco-web.fullname" . }}-files
+            items:
+              - key: {{ .Values.config.fileName | quote }}
+                path: {{ .Values.config.fileName }}
+        {{- if .Values.dataVolume.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
