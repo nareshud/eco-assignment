@@ -4,15 +4,18 @@ variable "aws_region" {
   default     = "ap-south-1"
 }
 
+# Optional static keys default to empty — prefer IAM instance profile, OIDC, or env
+# (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY) / aws_profile. Do not put real keys in VCS;
+# `terraform.tfvars` is gitignored; copy from terraform.tfvars.example.
 variable "aws_access_key_id" {
-  description = "Optional static access key. Prefer AWS_ACCESS_KEY_ID env var or aws_profile."
+  description = "Optional static access key. Prefer IAM role, env, or aws_profile."
   type        = string
   sensitive   = true
   default     = ""
 }
 
 variable "aws_secret_access_key" {
-  description = "Optional static secret key. Prefer AWS_SECRET_ACCESS_KEY env var or aws_profile."
+  description = "Optional static secret. Prefer IAM role, env, or aws_profile."
   type        = string
   sensitive   = true
   default     = ""
