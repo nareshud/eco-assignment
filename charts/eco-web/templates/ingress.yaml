@@ -33,5 +33,5 @@ spec:
               service:
                 name: {{ include "eco-web.fullname" . }}
                 port:
-                  number: {{ .Values.service.port }}
+                  name: http
 {{- end }}

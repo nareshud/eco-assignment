@@ -9,7 +9,8 @@ COPY public ./public
 
 RUN node scripts/build.cjs
 
-RUN mkdir -p /data && chown node:node /data
+# Non-root user must be able to read /app and dist/ (else GET / can 404 when index.html is unreadable).
+RUN chown -R node:node /app && mkdir -p /data && chown node:node /data
 
 ENV NODE_ENV=production
 ENV PORT=8080
