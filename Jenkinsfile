@@ -28,6 +28,11 @@ pipeline {
       defaultValue: 'terraformbackend.conf',
       description: 'Backend config file name inside terraform/aws-eks (terraform init -backend-config=file). Clear only if init works without it.'
     )
+    string(
+      name: 'INGRESS_HOST',
+      defaultValue: 'eco-app.local',
+      description: 'Hostname in the app Ingress (open http://INGRESS_HOST in a browser; map this name in /etc/hosts to the ingress-nginx LoadBalancer DNS in AWS).'
+    )
   }
 
   environment {
@@ -40,6 +45,7 @@ pipeline {
     HELM_RELEASE = "${params.HELM_RELEASE}"
     HELM_NAMESPACE = "${params.HELM_NAMESPACE}"
     TERRAFORM_BACKEND_FILE = "${params.TERRAFORM_BACKEND_FILE}"
+    INGRESS_HOST = "${params.INGRESS_HOST}"
   }
 
   stages {
@@ -114,6 +120,17 @@ pipeline {
         }
         sh '''
           set -eu
+          # ingress-nginx: public LoadBalancer (see charts/values-ingress-nginx-aws.yaml) + IngressClass nginx.
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx 2>/dev/null || true
+          helm repo update
+          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx \
+            --create-namespace \
+            -f "${WORKSPACE}/charts/values-ingress-nginx-aws.yaml" \
+            --wait --timeout 15m
+        '''
+        sh '''
+          set -eu
           ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
           ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
           helm upgrade --install "${HELM_RELEASE}" "${HELM_CHART}" \
@@ -122,6 +139,10 @@ pipeline {
             --set "image.repository=${ECR_REGISTRY}/${ECR_REPOSITORY}" \
             --set "image.tag=${IMAGE_TAG}" \
             --set image.pullPolicy=Always \
+            --set service.type=ClusterIP \
+            --set ingress.enabled=true \
+            --set ingress.className=nginx \
+            --set "ingress.hosts[0].host=${INGRESS_HOST}" \
             --atomic \
             --wait \
             --timeout 15m
@@ -135,7 +156,7 @@ pipeline {
       echo 'Pipeline failed — check Terraform state locks, IAM role permissions, and EKS API access from the Jenkins agent.'
     }
     success {
-      echo "Pipeline completed — check: kubectl get svc -n ${env.HELM_NAMESPACE}"
+      echo "See charts/values-ingress-nginx-aws.yaml and INGRESS_HOST: get ELB with kubectl get svc -n ingress-nginx; on your *laptop* add /etc/hosts or a public DNS CNAME to that address, then open http://${env.INGRESS_HOST}/"
     }
   }
 }

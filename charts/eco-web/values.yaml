@@ -10,19 +10,22 @@ image:
 nameOverride: ""
 fullnameOverride: ""
 
+# Expose the app only inside the cluster. External HTTP uses Ingress (see ingress-nginx in Jenkins
+# or install another Ingress controller) — not a per-app LoadBalancer.
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80
   targetPort: 8080
-  # Optional cloud annotations (e.g. AWS NLB/ELB). See your provider’s docs.
   annotations: {}
 
 ingress:
   enabled: true
-  className: ""
+  # Use the class created by the ingress-nginx chart (Jenkins installs it) or your own controller.
+  className: nginx
   annotations: {}
+  # Browser URL must use this host; map it in /etc/hosts to the nginx controller ELB, or use real DNS.
   hosts:
-    - host: eco-web.example.local
+    - host: eco-app.local
       paths:
         - path: /
           pathType: Prefix
