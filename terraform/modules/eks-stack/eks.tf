@@ -1,4 +1,10 @@
 # EKS control plane, managed node group, core add-ons, IRSA — native resources (no public modules).
+locals {
+  # AL2 (AL2_x86_64) node AMIs are only for Kubernetes <= 1.32. 1.33+ requires Amazon Linux 2023.
+  k8s_minor     = tonumber(split(".", var.cluster_version)[1])
+  node_ami_type = local.k8s_minor <= 32 ? "AL2_x86_64" : "AL2023_x86_64_STANDARD"
+}
+
 resource "aws_eks_cluster" "this" {
   name     = var.cluster_name
   role_arn = aws_iam_role.eks_cluster.arn
@@ -38,7 +44,7 @@ resource "aws_eks_node_group" "default" {
   subnet_ids      = aws_subnet.private[*].id
 
   instance_types = var.node_instance_types
-  ami_type       = "AL2_x86_64"
+  ami_type       = local.node_ami_type
   capacity_type  = "ON_DEMAND"
 
   scaling_config {
