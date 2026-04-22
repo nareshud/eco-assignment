@@ -61,7 +61,7 @@ pipeline {
               terraform init -input=false
             fi
             terraform validate
-            terraform plan -out=tfplan
+            terraform plan -out=tfplan -lock=false
             terraform apply -input=false -auto-approve tfplan -lock=false
           '''
         }
