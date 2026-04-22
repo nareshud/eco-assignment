@@ -33,6 +33,11 @@ pipeline {
       defaultValue: 'eco-app.local',
       description: 'Hostname in the app Ingress (open http://INGRESS_HOST in a browser; map this name in /etc/hosts to the ingress-nginx LoadBalancer DNS in AWS).'
     )
+    booleanParam(
+      name: 'HELM_UPGRADE_INGRESS_NGINX',
+      defaultValue: true,
+      description: 'If false, skip helm for ingress-nginx (faster app-only deploys; use true for new clusters or when you change charts/values-ingress-nginx-aws.yaml).'
+    )
   }
 
   environment {
@@ -118,17 +123,23 @@ pipeline {
             aws eks update-kubeconfig --region "${AWS_DEFAULT_REGION}" --name "${CLUSTER_NAME}"
           '''
         }
-        sh '''
-          set -eu
-          # ingress-nginx: public LoadBalancer (see charts/values-ingress-nginx-aws.yaml) + IngressClass nginx.
-          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx 2>/dev/null || true
-          helm repo update
-          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-            --namespace ingress-nginx \
-            --create-namespace \
-            -f "${WORKSPACE}/charts/values-ingress-nginx-aws.yaml" \
-            --wait --timeout 15m
-        '''
+        script {
+          if (params.HELM_UPGRADE_INGRESS_NGINX != false) {
+            sh '''
+              set -eu
+              # Optional: not strictly needed every run — keep true for new clusters; set false to only upgrade eco-web.
+              helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx 2>/dev/null || true
+              helm repo update
+              helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+                --namespace ingress-nginx \
+                --create-namespace \
+                -f "${WORKSPACE}/charts/values-ingress-nginx-aws.yaml" \
+                --wait --timeout 15m
+            '''
+          } else {
+            echo 'Skipping helm upgrade for ingress-nginx (HELM_UPGRADE_INGRESS_NGINX is false).'
+          }
+        }
         sh '''
           set -eu
           ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
