@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "eco-web.fullname" . }}-files
+  labels:
+    {{- include "eco-web.labels" . | nindent 4 }}
+data:
+  {{ .Values.config.fileName }}: |
+{{ .Values.config.fileContent | trim | nindent 4 }}

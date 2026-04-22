@@ -1,0 +1,15 @@
+# ingress-nginx controller for EKS. Nodes can stay in *private* subnets; the cloud still
+# creates a *public* load balancer (ELB/NLB) in public subnets that forwards to pod IPs
+# in the private network (you do not browse "into" the private subnet directly).
+#
+# "internet-facing" avoids an *internal* LB, which is only reachable from inside the VPC/VPN.
+controller:
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+  ingressClass: nginx
+  ingressClassResource:
+    name: nginx
+    default: true
+    enabled: true

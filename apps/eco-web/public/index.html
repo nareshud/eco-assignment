@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0d3d2c" />
+  <!--BUILD_META-->
+  <title>Eco Web — Demo</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="bg-pattern" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Eco Web</span>
+    </div>
+    <nav class="nav">
+      <a href="#overview">Overview</a>
+      <a href="#status">Status</a>
+      <a href="/health" target="_blank" rel="noopener">API</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="overview">
+      <p class="eyebrow">Lightweight demo</p>
+      <h1>Run anywhere. Stay simple.</h1>
+      <p class="lede">
+        A tiny Node.js service with a clean UI, health checks for orchestration,
+        and a production-ready Docker image for your cluster.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/health" target="_blank" rel="noopener">View JSON health</a>
+        <button type="button" class="btn btn-ghost" id="refresh-status">Refresh status</button>
+      </div>
+    </section>
+
+    <section class="cards" aria-label="Highlights">
+      <article class="card">
+        <h2>Health &amp; readiness</h2>
+        <p><code>/health</code> and <code>/healthz</code> return JSON for probes. <code>/ready</code> is plain text.</p>
+      </article>
+      <article class="card">
+        <h2>Static build</h2>
+        <p>UI assets live in <code>public/</code>. <code>npm run build</code> copies them to <code>dist/public/</code> for production.</p>
+      </article>
+      <article class="card">
+        <h2>Container-ready</h2>
+        <p>Non-root user, Alpine base, listens on <code>8080</code> — ready for Kubernetes on EKS.</p>
+      </article>
+    </section>
+
+    <section class="panel" id="status" aria-labelledby="status-heading">
+      <div class="panel-head">
+        <h2 id="status-heading">Live status</h2>
+        <span class="panel-badge" id="status-pill" data-state="loading">Checking…</span>
+      </div>
+      <dl class="status-grid" id="status-details" hidden>
+        <div><dt>Service</dt><dd id="field-service">—</dd></div>
+        <div><dt>Uptime</dt><dd id="field-uptime">—</dd></div>
+        <div><dt>HTTP</dt><dd id="field-http">—</dd></div>
+        <div><dt>Deployment env</dt><dd id="field-deploy-env">—</dd></div>
+        <div><dt>Banner</dt><dd id="field-banner">—</dd></div>
+        <div><dt>Config file</dt><dd id="field-config">—</dd></div>
+        <div><dt>Data volume</dt><dd id="field-data">—</dd></div>
+      </dl>
+      <p class="panel-error" id="status-error" hidden></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Eco Web demo · <span id="build-hint">local assets</span></p>
+  </footer>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

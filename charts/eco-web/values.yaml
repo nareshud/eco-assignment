@@ -1,0 +1,84 @@
+# Default install values — override with `helm install ... -f my-values.yaml` or `--set`.
+
+replicaCount: 1
+
+image:
+  repository: eco-web
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Expose the app only inside the cluster. External HTTP uses Ingress (see ingress-nginx in Jenkins
+# or install another Ingress controller) — not a per-app LoadBalancer.
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  annotations: {}
+
+ingress:
+  enabled: true
+  # Use the class created by the ingress-nginx chart (Jenkins installs it) or your own controller.
+  className: nginx
+  annotations: {}
+  # Single host rule (flat keys — `helm --set ingress.host=...` does not drop paths, unlike a nested hosts[0] list).
+  host: eco-app.local
+  path: /
+  pathType: Prefix
+  tls: []
+
+# Plain container environment variables (customize per environment).
+env:
+  PORT: "8080"
+  SERVICE_NAME: eco-web
+  CONFIG_MOUNT_PATH: /config
+  CONFIG_FILE_NAME: app-config.json
+  DATA_DIR: /data
+  # When "true", /ready stays 503 until the mounted JSON file loads (exercises readiness + volume).
+  REQUIRE_CONFIG_FILE: "true"
+
+# Optional: extra literals stored in a ConfigMap and injected via envFrom (demonstrates ConfigMap → env).
+configEnv:
+  DEPLOYMENT_ENV: staging
+  PUBLIC_BANNER: "Values from values.yaml → ConfigMap → envFrom"
+
+# JSON file mounted as a volume (ConfigMap volume). Consumed by the app from CONFIG_MOUNT_PATH/CONFIG_FILE_NAME.
+config:
+  mountPath: /config
+  fileName: app-config.json
+  fileContent: |
+    {
+      "tier": "demo",
+      "note": "Edit charts/eco-web/values.yaml → config.fileContent"
+    }
+
+# emptyDir volume for writable pod-local data (app writes startup.txt when possible).
+dataVolume:
+  enabled: true
+  mountPath: /data
+
+resources: {}
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 3
+  periodSeconds: 5
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
