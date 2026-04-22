@@ -23,12 +23,10 @@ ingress:
   # Use the class created by the ingress-nginx chart (Jenkins installs it) or your own controller.
   className: nginx
   annotations: {}
-  # Browser URL must use this host; map it in /etc/hosts to the nginx controller ELB, or use real DNS.
-  hosts:
-    - host: eco-app.local
-      paths:
-        - path: /
-          pathType: Prefix
+  # Single host rule (flat keys — `helm --set ingress.host=...` does not drop paths, unlike a nested hosts[0] list).
+  host: eco-app.local
+  path: /
+  pathType: Prefix
   tls: []
 
 # Plain container environment variables (customize per environment).

@@ -142,7 +142,7 @@ pipeline {
             --set service.type=ClusterIP \
             --set ingress.enabled=true \
             --set ingress.className=nginx \
-            --set "ingress.hosts[0].host=${INGRESS_HOST}" \
+            --set "ingress.host=${INGRESS_HOST}" \
             --atomic \
             --wait \
             --timeout 15m
