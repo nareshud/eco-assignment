@@ -8,6 +8,9 @@
  * IAM permissions: Terraform state (S3/DynamoDB), EKS, ECR, EC2/VPC as required by terraform/aws-eks.
  *
  * Jenkins: New Item → Pipeline → Definition: Pipeline script from SCM → point at this repo + branch → Build Now.
+ *
+ * Terraform: after `terraform plan`, the build pauses at “Terraform: approve plan” — use Apply to run
+ * `terraform apply`, or Abort to stop the pipeline without applying.
  */
 
 pipeline {
@@ -60,7 +63,7 @@ pipeline {
       }
     }
 
-    stage('Terraform (provision infra)') {
+    stage('Terraform: init, validate & plan') {
       steps {
         dir(env.TF_DIR) {
           sh '''
@@ -73,6 +76,29 @@ pipeline {
             fi
             terraform validate
             terraform plan -out=tfplan
+            terraform show -no-color tfplan
+          '''
+        }
+      }
+    }
+
+    stage('Terraform: approve plan') {
+      options {
+        timeout(time: 24, unit: 'HOURS')
+      }
+      steps {
+        input(
+          message: 'Review the plan in the build log. Apply the saved plan, or abort to stop without changes.',
+          ok: 'Apply',
+        )
+      }
+    }
+
+    stage('Terraform: apply plan') {
+      steps {
+        dir(env.TF_DIR) {
+          sh '''
+            set -eu
             terraform apply -input=false -auto-approve tfplan
           '''
         }
