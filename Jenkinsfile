@@ -87,8 +87,9 @@ pipeline {
         timeout(time: 24, unit: 'HOURS')
       }
       steps {
+        // Aborting this input aborts the whole build: later stages (apply, Docker, Helm) are not run.
         input(
-          message: 'Review the plan in the build log. Apply the saved plan, or abort to stop without changes.',
+          message: 'Review the plan in the build log, then either Apply to continue, or Abort to stop the entire pipeline (no Terraform apply, no Docker, no Helm).',
           ok: 'Apply',
         )
       }
@@ -189,6 +190,9 @@ pipeline {
   }
 
   post {
+    aborted {
+      echo 'Pipeline was aborted (e.g. Terraform approval not confirmed). No later stages were executed after the abort.'
+    }
     failure {
       echo 'Pipeline failed — check Terraform state locks, IAM role permissions, and EKS API access from the Jenkins agent.'
     }
