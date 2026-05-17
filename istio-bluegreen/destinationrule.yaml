@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+
+metadata:
+  name: demo-destination
+  namespace: production
+
+spec:
+  host: demo-service
+
+  subsets:
+  - name: blue
+    labels:
+      version: blue
+
+  - name: green
+    labels:
+      version: green

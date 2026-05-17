@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: green-app
+  namespace: production
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: demo
+      version: green
+
+  template:
+    metadata:
+      labels:
+        app: demo
+        version: green
+
+    spec:
+      containers:
+      - name: green-app
+
+        image: hashicorp/http-echo:1.0
+
+        args:
+        - "-text=GREEN VERSION"
+
+        ports:
+        - containerPort: 5678
+
+        readinessProbe:
+          tcpSocket:
+            port: 5678
+
+          initialDelaySeconds: 5
+          periodSeconds: 10
