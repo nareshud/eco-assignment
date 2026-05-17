@@ -24,16 +24,13 @@ spec:
       - name: green-app
 
         image: nginxdemos/hello:plain-text
-
-        args:
-        - "-text=GREEN VERSION"
-
         ports:
-        - containerPort: 5678
+        - containerPort: 80
 
         readinessProbe:
-          tcpSocket:
-            port: 5678
+          httpGet:
+            path: /
+            port: 80
 
           initialDelaySeconds: 5
           periodSeconds: 10
