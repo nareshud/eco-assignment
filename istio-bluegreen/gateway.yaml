@@ -17,3 +17,18 @@ spec:
 
     hosts:
     - "*"
+
+  ####### TLS configuration (optional) #########
+
+  # servers:
+  # - port:
+  #     number: 443
+  #     name: https
+  #     protocol: HTTPS
+
+  #   tls:
+  #     mode: SIMPLE
+  #     credentialName: myapp-tls
+
+  #   hosts:
+  #   - myapp.example.com
