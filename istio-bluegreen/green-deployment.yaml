@@ -23,7 +23,7 @@ spec:
       containers:
       - name: green-app
 
-        image: hashicorp/http-echo:1.0
+        image: nginxdemos/hello:plain-text
 
         args:
         - "-text=GREEN VERSION"
