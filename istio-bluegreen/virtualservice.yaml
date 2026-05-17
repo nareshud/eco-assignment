@@ -18,9 +18,9 @@ spec:
     - destination:
         host: demo-service
         subset: blue
-      weight: 0
+      weight: 100
 
     - destination:
         host: demo-service
         subset: green
-      weight: 100
+      weight: 0
